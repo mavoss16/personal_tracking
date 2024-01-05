@@ -1,0 +1,140 @@
+---
+title: "Podcast Data Analysis"
+echo: false
+message: false
+warning: false
+format: 
+  html:
+    embed-resources: true
+---
+
+
+
+```{r}
+#| include: false
+
+
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(reactable)
+library(forcats)
+
+source("https://raw.githubusercontent.com/iascchen/VisHealth/master/R/calendarHeat.R")
+# http://www.columbia.edu/~sg3637/blog/Time_Series_Heatmaps.html
+```
+
+
+```{r}
+#| include: false
+
+
+data <- read_rds("podcast_data.rds")
+podcast_summary <- read_rds("podcast_summary.rds")
+date_summary <- read_rds("podcast_date_summary.rds")
+wday_summary <- read_rds("podcast_wday_summary.rds")
+
+
+color_breaks <- unique(data$category)
+color_values <- unique(data$category_color)
+```
+
+
+```{r}
+reactable(podcast_summary)
+```
+
+```{r}
+# Nudge vs. just: https://stackoverflow.com/questions/69087133/in-r-ggplot2-vjust-and-nudge-y-can-adjust-text-position-for-vertical-axis
+max_value <- max(podcast_summary$total_hours) * 1.2
+ggplot(
+  podcast_summary |> arrange(-total_hours) |> slice(1:10), 
+  aes(x = fct_reorder(podcast, total_hours), y = total_hours, label = total_hours |> round(1), fill = category)
+  ) +
+  geom_col() +
+  geom_text(nudge_y = (max_value * 0.038)) +
+  scale_y_continuous(limits = c(0, max(podcast_summary$total_hours)*1.2)) +
+  scale_fill_manual(breaks = color_breaks, values = color_values) +
+  labs(x = "", y = "", title = "Top Podcasts by Total Hours", fill = "Category") +
+  coord_flip() +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_blank(), axis.title.y = element_blank()
+  )
+```
+
+```{r}
+max_value <- max(podcast_summary$total_episodes) * 1.2
+ggplot(
+  podcast_summary |> arrange(-total_episodes) |> slice(1:10), 
+  aes(x = fct_reorder(podcast, total_episodes), y = total_episodes, label = total_episodes, fill = category)
+  ) +
+  geom_col() +
+  geom_text(nudge_y = (max_value * 0.025)) +
+  scale_y_continuous(limits = c(0, max_value)) +
+  scale_fill_manual(breaks = color_breaks, values = color_values) +
+  labs(x = "", y = "", title = "Top Podcasts by Total Episodes", fill = "Category") +
+  coord_flip() +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_blank(), axis.title.y = element_blank()
+  )
+```
+
+
+```{r}
+ggplot(
+  wday_summary,
+  aes(x = fct_rev(wday_listened), y = avg_hours, label = avg_hours |> round(1))
+) +
+  geom_col() +
+  geom_text(hjust = -1) +
+  labs(x = "", y = "", title = "Days of the Week by Average Hours per Day") +
+  coord_flip() +
+  theme_minimal()
+```
+
+
+```{r}
+ggplot(
+  wday_summary,
+  aes(x = fct_rev(wday_listened), y = avg_episodes, label = avg_episodes |> round(1))
+) +
+  geom_col() +
+  geom_text(hjust = -.75) +
+  labs(x = "", y = "", title = "Days of the Week by Average Episodes per Day") +
+  coord_flip() +
+  theme_minimal()
+```
+
+```{r}
+
+ggplot(date_summary, aes(x = wday_listened, y = -month_week, label = total_hours, fill = total_hours)) +
+  geom_tile(color = "white") +
+  geom_text() +
+  facet_grid(month_listened~year_listened) +
+  scale_fill_gradient(low = "red", high = "green") +
+  scale_y_continuous() +
+  labs(title = "Calendar Heatmap - Hours Listened", fill = "Hours") +
+  theme_bw() +
+  theme(
+    axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(), axis.title.y = element_blank()
+  )
+```
+
+```{r}
+
+ggplot(date_summary, aes(x = wday_listened, y = -month_week, label = total_episodes, fill = total_episodes)) +
+  geom_tile(color = "white") +
+  geom_text() +
+  facet_grid(month_listened~year_listened) +
+  scale_fill_gradient(low = "red", high = "green") +
+  scale_y_continuous() +
+  labs(title = "Calendar Heatmap - Episodes Listened", fill = "Episodes") +
+  theme_bw() +
+  theme(
+    axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(), axis.title.y = element_blank()
+  )
+```

@@ -1,0 +1,14 @@
+name: mjv_podcasts
+title: mjv_podcasts
+username:
+account: mavoss
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9530910
+bundleId: 8043047
+url: https://mavoss.shinyapps.io/mjv_podcasts/
+quarto_version: 1.3.353
+quarto_engines: knitr
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: podcast_data.R|podcast_data_analysis.html|podcast_data_analysis.qmd|podcast_data_shiny.R|podcast_date_summary.rds|podcast_shiny_deploy.R|podcast_summary.rds|podcast_wday_summary.rds

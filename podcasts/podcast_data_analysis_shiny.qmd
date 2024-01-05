@@ -1,0 +1,446 @@
+---
+title: "Podcast Data Analysis"
+echo: false
+message: false
+warning: false
+format: 
+  html:
+    embed-resources: true
+    page-layout: full
+server: shiny
+---
+
+
+
+```{r}
+#| context: setup
+#| include: false
+
+
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(reactable)
+library(forcats)
+library(shiny)
+library(lubridate)
+library(zoo)
+library(tidyr)
+library(shinydashboard)
+
+source("https://raw.githubusercontent.com/iascchen/VisHealth/master/R/calendarHeat.R")
+# http://www.columbia.edu/~sg3637/blog/Time_Series_Heatmaps.html
+```
+
+
+```{r}
+#| context: data
+#| include: false
+
+
+data <- read_rds("podcast_data.rds")
+# podcast_summary <- read_rds("podcast_summary.rds")
+# date_summary <- read_rds("podcast_date_summary.rds")
+# wday_summary <- read_rds("podcast_wday_summary.rds")
+
+
+color_breaks <- unique(data$category) |> na.omit()
+color_values <- unique(data$category_color) |> na.omit()
+```
+
+::: {.panel-sidebar}
+```{r}
+
+dateRangeInput(
+  "date_range_input", label = "Select a Date Range:",
+  start = "2023-03-01", end = max(data$date_listened)
+)
+
+checkboxGroupInput(
+  "category_input", label = "Select Categories",
+  choices = c(unique(data$category) |> sort()),
+  selected = c(unique(data$category) |> sort())
+)
+
+# actionButton(
+#   "run_data_script", label = "Update Podcast Data"
+# )
+# htmlOutput(
+#   "data_update_text"
+# )
+
+```
+:::
+
+::: {.panel-fill}
+
+```{r}
+#| layout-ncol: 3
+valueBoxOutput("box_hours")
+valueBoxOutput("box_days")
+valueBoxOutput("box_episodes")
+```
+
+::: {.panel-tabset}
+
+## Plots
+```{r}
+plotOutput("bar_podcasts_hours")
+plotOutput("bar_podcasts_episodes")
+plotOutput("bar_days_hours")
+plotOutput("bar_days_episodes")
+plotOutput("calendar_hours", height = "750px")
+plotOutput("calendar_episodes", height = "750px")
+# reactableOutput("dates_test")
+```
+
+
+## Podcast Table
+```{r}
+reactableOutput("table_podcasts")
+```
+
+## Episode Table
+```{r}
+reactableOutput("table_episodes")
+```
+
+:::
+:::
+
+```{r}
+#| context: server
+
+# updated_data <- eventReactive(input$run_data_script, {
+#   token <- "secret_lO3gKIZIMpzcRUeRt6hKZwxcUB4t9yvGwpWTXbNIQSP"
+#   database_id <- "4b65ebb0ce37442eb862954d1dd8fa1c"
+#   
+#   orig <- getNotionDatabase(
+#     secret = token,
+#     database = database_id
+#   )
+#   
+#   df <- orig |>
+#     select(
+#       id, 
+#       `properties.Episode Title.title.plain_text`,
+#       `properties.Podcast.select.name`,
+#       `properties.Date Published.date.start`,
+#       `properties.Date Listened.created_time`,
+#       `properties.Minutes Listened.number`,
+#       properties.URL.url,
+#       properties.Podcast.select.color
+#     )
+#   
+#   names(df) <- c("id", "episode_title", "podcast", "date_published", "date_listened", "minutes_listened", "url", "category_color")
+#   
+#   
+#   df |>
+#     mutate(
+#       date_published = ymd(date_published),
+#       category = case_when(
+#         category_color == "purple" ~ "Politics",
+#         category_color == "blue" ~ "Iowa",
+#         category_color == "red" ~ "Sports",
+#         category_color == "yellow" ~ "Lifestyle",
+#         category_color == "orange" ~ "Economics",
+#         category_color == "green" ~ "Science",
+#         category_color == "gray" ~ "Other",
+#         category_color == "brown" ~ "History",
+#         TRUE ~ NA_character_
+#       ),
+#       minutes_listened = as.numeric(minutes_listened)
+#     ) |>
+#     mutate(
+#       datetime_listened = as_datetime(date_listened) |> with_tz(tzone = "America/Chicago"),
+#       date_listened = as_date(force_tz(datetime_listened, tzone = "UTC") |> as_date()),
+#       year_listened = year(date_listened),
+#       month_listened = month(date_listened, label = TRUE),
+#       wday_listened = wday(date_listened, label = TRUE),
+#       hour_listened = hour(datetime_listened),
+#       time_after_publish = date_listened - date_published,
+#       .after = date_listened
+#     ) |>
+#     mutate(
+#       hours_listened = round(minutes_listened/60, digits = 2)
+#     )
+#   
+# })
+# 
+# output$data_update_text <- renderUI({
+#   if(input$run_data_script == 0){
+#     text <- "Original Data"# |> paste0(input$run_data_script)
+#   } else{
+#     text <- "Data Updated to Current Date"# |> paste0(input$run_data_script)
+#   }
+#   
+#   text |> HTML()
+# })
+
+
+
+episode_data <- reactive({
+  
+  # if(input$run_data_script == 0){
+  #   new_data <- data |>
+  #     filter(
+  #       date_listened >= min(input$date_range_input) & date_listened <= max(input$date_range_input),
+  #       category %in% input$category_input
+  #     )
+  # } else{
+  #   new_data <- updated_data() |>
+  #     filter(
+  #       date_listened >= min(input$date_range_input) & date_listened <= max(input$date_range_input),
+  #       category %in% input$category_input
+  #     )
+  # }
+  # 
+  # return(new_data)
+  
+  data |>
+    filter(
+      date_listened >= min(input$date_range_input) & date_listened <= max(input$date_range_input),
+      category %in% input$category_input
+    )
+})
+
+categories <- reactive({
+  episode_data() |>
+    distinct(category, category_color) |>
+    filter(!is.na(category) & !is.na(category_color))
+})
+
+# # Group by podcast
+podcast_summary <- reactive({
+  episode_data() |>
+    group_by(podcast, category) |>
+    summarize(
+      total_minutes = sum(minutes_listened, na.rm = TRUE),
+      total_hours = sum(hours_listened, na.rm = TRUE),
+      total_episodes = n(),
+      avg_days_before_listen = mean(time_after_publish, na.rm = TRUE) |> round(2),
+      category = unique(category)
+    ) |>
+    mutate(avg_ep_minutes = (total_minutes/total_episodes) |> round(2)) |>
+    ungroup()
+})
+ 
+date_summary <- reactive({
+
+  # Create base date df
+  dates <- data.frame(
+    date_listened = min(input$date_range_input, na.rm = T):max(input$date_range_input, na.rm = T) |> as.Date()
+  ) |>
+    mutate(
+      year_listened = year(date_listened),
+      month_listened = month(date_listened, label = TRUE),
+      wday_listened = wday(date_listened, label = TRUE)
+    )
+  
+
+  # Group by date - initial date calculations
+  date_summary <- episode_data() |>
+    group_by(date_listened, year_listened, month_listened, wday_listened) |>
+    summarize(
+      total_minutes = sum(minutes_listened, na.rm = TRUE),
+      total_hours = sum(hours_listened, na.rm = TRUE),
+      total_episodes = n()
+    ) |>
+    mutate(avg_ep_minutes = total_minutes/total_episodes)
+
+
+  # Add in days without listening to any podcasts + calculations for calendar heatmap
+  date_summary <- left_join(dates, date_summary) |>
+    mutate(
+      total_minutes = replace_na(total_minutes, 0),
+      total_hours = replace_na(total_hours, 0),
+      total_episodes = replace_na(total_episodes, 0)
+    ) |>
+    mutate(
+      year_month = factor(as.yearmon(date_listened)),
+      week = week(date_listened)
+    ) |>
+    filter(year_month != "Feb 2023") |>
+    group_by(year_month) |>
+    mutate(month_week = 1 + week - min(week)) |>
+    ungroup()
+
+  date_summary
+})
+
+output$dates_test <- renderReactable({
+  # min(episode_data()$date_listened, na.rm = T):max(episode_data()$date_listened, na.rm = T)
+  reactable(date_summary())
+})
+
+
+wday_summary <- reactive({
+  date_summary() |>
+    group_by(wday_listened) |>
+    summarize(
+      avg_minutes = mean(total_minutes, na.rm = TRUE) |> round(2),
+      total_minutes = sum(total_minutes, na.rm = TRUE),
+      avg_hours = mean(total_hours, na.rm = TRUE) |> round(2),
+      total_hours = sum(total_hours, na.rm = TRUE),
+      avg_episodes = mean(total_episodes, na.rm = TRUE) |> round(2),
+      total_episodes = sum(total_episodes, na.rm = TRUE)
+    ) |>
+    mutate(avg_ep_minutes = (total_minutes/total_episodes) |> round(2))
+})
+
+output$box_hours <- renderValueBox({
+  hours <- sum(episode_data()$hours_listened, na.rm = T)
+  valueBox(
+    paste0(hours, " (", (hours/24) |> round(1), " days)"),
+    "Total Hours"
+  )
+})
+
+output$box_days <- renderValueBox({
+  valueBox(
+    paste0(sum(date_summary()$total_episodes >= 1, na.rm = T), "/", nrow(date_summary())),
+    "Number of Days"
+  )
+})
+
+output$box_episodes <- renderValueBox({
+  valueBox(
+    nrow(episode_data()),
+    "Total Episodes"
+  )
+})
+
+output$table_podcasts <- renderReactable({
+  reactable(
+    podcast_summary() |>
+      select(podcast, total_hours, total_episodes, avg_ep_minutes, avg_days_before_listen, category),
+    columns = list(
+      podcast = colDef(name = "Podcast"),
+      total_hours = colDef(name = "# Hours"),
+      total_episodes = colDef(name = "# Episodes"),
+      avg_ep_minutes = colDef(name = "Avg. Episode Length (min)"),
+      category = colDef(name = "Category")
+    ),
+    filterable = TRUE,
+    searchable = TRUE
+  )
+})
+
+output$table_episodes <- renderReactable({
+  reactable(
+    episode_data() |>
+      select(podcast, episode_title, date_published, date_listened, minutes_listened, category),
+    columns = list(
+      podcast = colDef(name = "Podcast"),
+      episode_title = colDef(name = "Episode Name"),
+      date_published = colDef(name = "Date Published"),
+      date_listened = colDef(name = "Date Listened"),
+      minutes_listened = colDef(name = "# Minutes"),
+      category = colDef(name = "Category")
+    ),
+    filterable = TRUE,
+    searchable = TRUE
+  )
+})
+
+output$bar_podcasts_hours <- renderPlot({
+  # Nudge vs. just: https://stackoverflow.com/questions/69087133/in-r-ggplot2-vjust-and-nudge-y-can-adjust-text-position-for-vertical-axis
+  max_value <- max(podcast_summary()$total_hours) * 1.2
+  ggplot(
+    podcast_summary() |> arrange(-total_hours) |> slice(1:10), 
+    aes(x = fct_reorder(podcast, total_hours), y = total_hours, label = total_hours |> round(1), fill = category)
+    ) +
+    geom_col() +
+    geom_text(aes(y = total_hours/2)) +
+    scale_y_continuous(limits = c(0, max(podcast_summary()$total_hours)*1.2)) +
+    scale_fill_manual(breaks = categories()$category, values = categories()$category_color) +
+    labs(x = "", y = "", title = "Top Podcasts by Total Hours", fill = "Category") +
+    coord_flip() +
+    theme_minimal() +
+    theme(
+      axis.title.x = element_blank(), axis.title.y = element_blank()
+    )
+})
+
+
+output$bar_podcasts_episodes <- renderPlot({
+  max_value <- max(podcast_summary()$total_episodes) * 1.2
+  ggplot(
+    podcast_summary() |> arrange(-total_episodes) |> slice(1:10), 
+    aes(x = fct_reorder(podcast, total_episodes), y = total_episodes, label = total_episodes, fill = category)
+    ) +
+    geom_col() +
+    geom_text(aes(y = total_episodes/2)) +
+    scale_y_continuous(limits = c(0, max_value)) +
+    scale_fill_manual(breaks = categories()$category, values = categories()$category_color) +
+    labs(x = "", y = "", title = "Top Podcasts by Total Episodes", fill = "Category") +
+    coord_flip() +
+    theme_minimal() +
+    theme(
+      axis.title.x = element_blank(), axis.title.y = element_blank()
+    )
+
+})
+
+
+output$bar_days_hours <- renderPlot({
+  ggplot(
+    wday_summary(),
+    aes(x = fct_rev(wday_listened), y = avg_hours, label = avg_hours |> round(1))
+  ) +
+    geom_col(fill = "lightblue", color = "black") +
+    geom_text(aes(y = avg_hours/2)) +
+    labs(x = "", y = "", title = "Days of the Week by Average Hours per Day") +
+    coord_flip() +
+    theme_minimal()
+})
+
+
+output$bar_days_episodes <- renderPlot({
+  ggplot(
+    wday_summary(),
+    aes(x = fct_rev(wday_listened), y = avg_episodes, label = avg_episodes |> round(1))
+  ) +
+    geom_col(fill = "lightblue", color = "black") +
+    geom_text(aes(y = avg_episodes/2)) +
+    labs(x = "", y = "", title = "Days of the Week by Average Episodes per Day") +
+    coord_flip() +
+    theme_minimal()
+})
+
+
+output$calendar_hours <- renderPlot({
+  ggplot(date_summary(), aes(x = wday_listened, y = -month_week, label = total_hours, fill = total_hours)) +
+    geom_tile(color = "white") +
+    geom_text() +
+    facet_grid(month_listened~year_listened) +
+    scale_fill_gradient(low = "red", high = "green") +
+    scale_y_continuous() +
+    labs(title = "Calendar Heatmap - Hours Listened", fill = "Hours") +
+    theme_bw() +
+    theme(
+      axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+      axis.title.x = element_blank(), axis.title.y = element_blank()
+    )
+})
+
+
+output$calendar_episodes <- renderPlot({
+  ggplot(date_summary(), aes(x = wday_listened, y = -month_week, label = total_episodes, fill = total_episodes)) +
+    geom_tile(color = "white") +
+    geom_text() +
+    facet_grid(month_listened~year_listened) +
+    scale_fill_gradient(low = "red", high = "green") +
+    scale_y_continuous() +
+    labs(title = "Calendar Heatmap - Episodes Listened", fill = "Episodes") +
+    theme_bw() +
+    theme(
+      axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+      axis.title.x = element_blank(), axis.title.y = element_blank()
+    )
+})
+
+
+
+```
+

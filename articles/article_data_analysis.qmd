@@ -1,0 +1,90 @@
+---
+title: "Article Data Analysis"
+echo: false
+message: false
+warning: false
+format: 
+  html:
+    embed-resources: true
+---
+
+
+
+```{r}
+#| include: false
+
+
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(reactable)
+library(forcats)
+
+# http://www.columbia.edu/~sg3637/blog/Time_Series_Heatmaps.html
+```
+
+
+```{r}
+#| include: false
+
+
+data <- read_rds("article_data.rds")
+publisher_summary <- read_rds("article_publisher_summary.rds")
+date_summary <- read_rds("article_date_summary.rds")
+wday_summary <- read_rds("article_wday_summary.rds")
+
+
+```
+
+
+```{r}
+reactable(publisher_summary)
+```
+
+
+```{r}
+max_value <- max(publisher_summary$total_articles) * 1.2
+ggplot(
+  publisher_summary |> arrange(-total_articles) |> slice(1:10), 
+  aes(x = fct_reorder(publisher, total_articles), y = total_articles, label = total_articles)
+  ) +
+  geom_col() +
+  geom_text(nudge_y = (max_value * 0.025)) +
+  scale_y_continuous(limits = c(0, max_value)) +
+  labs(x = "", y = "", title = "Top Publishers by Total Articles", fill = "Category") +
+  coord_flip() +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_blank(), axis.title.y = element_blank()
+  )
+```
+
+
+```{r}
+ggplot(
+  wday_summary,
+  aes(x = fct_rev(wday_read), y = avg_articles, label = avg_articles |> round(1))
+) +
+  geom_col() +
+  geom_text(hjust = -.75) +
+  labs(x = "", y = "", title = "Days of the Week by Average Articles per Day") +
+  coord_flip() +
+  theme_minimal()
+```
+
+
+```{r}
+
+ggplot(date_summary, aes(x = wday_read, y = -month_week, label = total_articles, fill = total_articles)) +
+  geom_tile(color = "white") +
+  geom_text() +
+  facet_grid(month_read~year_read) +
+  scale_fill_gradient(low = "red", high = "green") +
+  scale_y_continuous() +
+  labs(title = "Calendar Heatmap - Articles Read", fill = "Articles") +
+  theme_bw() +
+  theme(
+    axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(), axis.title.y = element_blank()
+  )
+```
