@@ -3015,7 +3015,7 @@ vertical-align: -.125em;
 <span class="input-group-addon input-group-prepend input-group-append">
 <span class="input-group-text"> to </span>
 </span>
-<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2023-12-31" data-date-autoclose="true">
+<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-01-04" data-date-autoclose="true">
 </div>
 </div>
 </div>
@@ -3111,7 +3111,8 @@ library(tm)
  
 <script type="application/shiny-prerendered" data-context="data">
 
-data <- read_rds("article_data.rds")
+# data <- read_rds("article_data.rds")
+data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/articles/article_data.rds", "rb"))
 # publisher_summary <- read_rds("article_publisher_summary.rds")
 # date_summary <- read_rds("article_date_summary.rds")
 # wday_summary <- read_rds("article_wday_summary.rds")

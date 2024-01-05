@@ -45,7 +45,8 @@ library(tm)
 #| include: false
 
 
-data <- read_rds("article_data.rds")
+# data <- read_rds("article_data.rds")
+data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/articles/article_data.rds", "rb"))
 # publisher_summary <- read_rds("article_publisher_summary.rds")
 # date_summary <- read_rds("article_date_summary.rds")
 # wday_summary <- read_rds("article_wday_summary.rds")
