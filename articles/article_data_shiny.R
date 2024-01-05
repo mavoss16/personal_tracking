@@ -12,7 +12,7 @@ setwd(rstudioapi::getActiveDocumentContext()$path |> dirname())
 # Daily Reading
 # https://www.notion.so/4b65ebb0ce37442eb862954d1dd8fa1c?v=4166c2a6b45a433ba19a45dc4940c780
 # https://www.notion.so/99e0b70084994976b066dc2ead02e176?v=a607576a249a4bb091248c94adb68274
-token <- "secret_lO3gKIZIMpzcRUeRt6hKZwxcUB4t9yvGwpWTXbNIQSP"
+token <- "test"
 database_id <- "99e0b70084994976b066dc2ead02e176"
 
 orig <- getNotionDatabase(
