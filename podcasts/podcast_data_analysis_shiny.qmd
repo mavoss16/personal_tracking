@@ -38,7 +38,8 @@ source("https://raw.githubusercontent.com/iascchen/VisHealth/master/R/calendarHe
 #| include: false
 
 
-data <- read_rds("podcast_data.rds")
+# data <- read_rds("podcast_data.rds")
+data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/podcasts/podcast_data.rds"))
 # podcast_summary <- read_rds("podcast_summary.rds")
 # date_summary <- read_rds("podcast_date_summary.rds")
 # wday_summary <- read_rds("podcast_wday_summary.rds")
@@ -111,91 +112,7 @@ reactableOutput("table_episodes")
 ```{r}
 #| context: server
 
-# updated_data <- eventReactive(input$run_data_script, {
-#   token <- "secret_lO3gKIZIMpzcRUeRt6hKZwxcUB4t9yvGwpWTXbNIQSP"
-#   database_id <- "4b65ebb0ce37442eb862954d1dd8fa1c"
-#   
-#   orig <- getNotionDatabase(
-#     secret = token,
-#     database = database_id
-#   )
-#   
-#   df <- orig |>
-#     select(
-#       id, 
-#       `properties.Episode Title.title.plain_text`,
-#       `properties.Podcast.select.name`,
-#       `properties.Date Published.date.start`,
-#       `properties.Date Listened.created_time`,
-#       `properties.Minutes Listened.number`,
-#       properties.URL.url,
-#       properties.Podcast.select.color
-#     )
-#   
-#   names(df) <- c("id", "episode_title", "podcast", "date_published", "date_listened", "minutes_listened", "url", "category_color")
-#   
-#   
-#   df |>
-#     mutate(
-#       date_published = ymd(date_published),
-#       category = case_when(
-#         category_color == "purple" ~ "Politics",
-#         category_color == "blue" ~ "Iowa",
-#         category_color == "red" ~ "Sports",
-#         category_color == "yellow" ~ "Lifestyle",
-#         category_color == "orange" ~ "Economics",
-#         category_color == "green" ~ "Science",
-#         category_color == "gray" ~ "Other",
-#         category_color == "brown" ~ "History",
-#         TRUE ~ NA_character_
-#       ),
-#       minutes_listened = as.numeric(minutes_listened)
-#     ) |>
-#     mutate(
-#       datetime_listened = as_datetime(date_listened) |> with_tz(tzone = "America/Chicago"),
-#       date_listened = as_date(force_tz(datetime_listened, tzone = "UTC") |> as_date()),
-#       year_listened = year(date_listened),
-#       month_listened = month(date_listened, label = TRUE),
-#       wday_listened = wday(date_listened, label = TRUE),
-#       hour_listened = hour(datetime_listened),
-#       time_after_publish = date_listened - date_published,
-#       .after = date_listened
-#     ) |>
-#     mutate(
-#       hours_listened = round(minutes_listened/60, digits = 2)
-#     )
-#   
-# })
-# 
-# output$data_update_text <- renderUI({
-#   if(input$run_data_script == 0){
-#     text <- "Original Data"# |> paste0(input$run_data_script)
-#   } else{
-#     text <- "Data Updated to Current Date"# |> paste0(input$run_data_script)
-#   }
-#   
-#   text |> HTML()
-# })
-
-
-
 episode_data <- reactive({
-  
-  # if(input$run_data_script == 0){
-  #   new_data <- data |>
-  #     filter(
-  #       date_listened >= min(input$date_range_input) & date_listened <= max(input$date_range_input),
-  #       category %in% input$category_input
-  #     )
-  # } else{
-  #   new_data <- updated_data() |>
-  #     filter(
-  #       date_listened >= min(input$date_range_input) & date_listened <= max(input$date_range_input),
-  #       category %in% input$category_input
-  #     )
-  # }
-  # 
-  # return(new_data)
   
   data |>
     filter(
