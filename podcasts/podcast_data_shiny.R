@@ -7,8 +7,7 @@ library(lubridate)
 library(zoo)
 library(tidyr)
 
-setwd("C:/Users/mavos/OneDrive/notion_analysis/podcasts")
-
+setwd(rstudioapi::getActiveDocumentContext()$path |> dirname())
 
 # Daily Listening
 # https://www.notion.so/4b65ebb0ce37442eb862954d1dd8fa1c?v=4166c2a6b45a433ba19a45dc4940c780

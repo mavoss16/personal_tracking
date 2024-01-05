@@ -39,14 +39,11 @@ source("https://raw.githubusercontent.com/iascchen/VisHealth/master/R/calendarHe
 
 
 # data <- read_rds("podcast_data.rds")
-data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/podcasts/podcast_data.rds"))
 # podcast_summary <- read_rds("podcast_summary.rds")
 # date_summary <- read_rds("podcast_date_summary.rds")
 # wday_summary <- read_rds("podcast_wday_summary.rds")
 
 
-color_breaks <- unique(data$category) |> na.omit()
-color_values <- unique(data$category_color) |> na.omit()
 ```
 
 ::: {.panel-sidebar}
@@ -54,13 +51,13 @@ color_values <- unique(data$category_color) |> na.omit()
 
 dateRangeInput(
   "date_range_input", label = "Select a Date Range:",
-  start = "2023-03-01", end = max(data$date_listened)
+  start = "2023-03-01", end = Sys.Date()
 )
 
 checkboxGroupInput(
   "category_input", label = "Select Categories",
-  choices = c(unique(data$category) |> sort()),
-  selected = c(unique(data$category) |> sort())
+  choices = c("Economics", "History", "Iowa", "Lifestyle", "Politics", "Science", "Sports") |> sort(),
+  selected = c("Economics", "History", "Iowa", "Lifestyle", "Politics", "Science", "Sports") |> sort()
 )
 
 # actionButton(
@@ -111,6 +108,10 @@ reactableOutput("table_episodes")
 
 ```{r}
 #| context: server
+
+data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/podcasts/podcast_data.rds"))
+color_breaks <- unique(data$category) |> na.omit()
+color_values <- unique(data$category_color) |> na.omit()
 
 episode_data <- reactive({
   
