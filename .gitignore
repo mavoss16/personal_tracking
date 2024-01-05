@@ -4,3 +4,5 @@
 .Ruserdata
 
 *.R
+podcasts/*.R
+articles/*.R
