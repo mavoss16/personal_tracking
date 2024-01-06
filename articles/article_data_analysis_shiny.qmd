@@ -27,10 +27,10 @@ library(lubridate)
 library(zoo)
 library(tidyr)
 library(shinydashboard)
-library(wordcloud)
+library(ggwordcloud)
 library(stringr)
-library(purrr)
-library(tm)
+library(tidytext)
+library(pluralize)
 
 # require(notionR)
 # library(notionR) # https://github.com/Eflores89/notionR
@@ -81,6 +81,17 @@ dateRangeInput(
 ::: {.panel-fill}
 
 ```{r}
+#| layout-ncol: 5
+actionButton("current_week_input", label = "Current Week")
+actionButton("previous_week_input", label = "Previous Week")
+actionButton("current_month_input", label = "Current Month")
+# actionButton("last_3_month_input", label = "Last 3 Months")
+actionButton("current_year_input", label = "Current Year")
+actionButton("full_input", label = "All-Time")
+
+```
+
+```{r}
 #| layout-ncol: 2
 valueBoxOutput("box_articles")
 valueBoxOutput("box_days")
@@ -124,6 +135,21 @@ plotOutput("wordcloud")
 ```{r}
 #| context: server
 
+observeEvent(input$current_week_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "week"), end = Sys.Date())
+})
+observeEvent(input$previous_week_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date() - 7, unit = "week"), end = floor_date(Sys.Date(), unit = "week") - 1)
+})
+observeEvent(input$current_month_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "month"), end = Sys.Date())
+})
+observeEvent(input$current_year_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "year"), end = Sys.Date())
+})
+observeEvent(input$full_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = ymd("2023/03/01"), end = Sys.Date())
+})
 
 data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/articles/article_data.rds", "rb"))
 
@@ -196,12 +222,22 @@ wday_summary <- reactive({
 
 # Wordcloud data
 wordcloud_data <- reactive({
-  article_data() |> 
-    pull(article_title) |>
-    str_remove_all(" - .+$|\\| .+|$") |>
-    map(tolower) |>
-    map(removeWords, stopwords("english")) |>
-    map(removePunctuation)
+  
+  article_data() |>
+    select(article_title) |>
+    mutate(
+      article_title = tolower(article_title) |> 
+        str_remove_all(" - .+$|\\| .+|$") |> 
+        str_replace_all("[^a-z]s ", " ") |>
+        str_replace_all(" [^a-z ]|[^a-z ] ", " ") |> 
+        str_replace_all("[^a-z ]", "")
+    ) |>
+    unnest_tokens(word, article_title) |>
+    filter(!is.na(word), !is.null(word)) |>
+    anti_join(stop_words |> mutate(word = str_remove_all(word, "[^a-zA-Z]"))) |>
+    count(word) |>
+    arrange(-n) |>
+    slice(1:100)
 })
 
 output$box_articles <- renderValueBox({
@@ -298,7 +334,17 @@ output$calendar_articles <- renderPlot({
 })
 
 output$wordcloud <- renderPlot({
-  wordcloud(wordcloud_data(), max.words = 200)
+  # wordcloud(wordcloud_data(), max.words = 200)
+  if(max(wordcloud_data()$n) / max(wordcloud_data()$n) <= 2){
+    word_max_size = 10
+  } else{
+    word_max_size = 25
+  }
+  ggplot(data = wordcloud_data() |> slice(1:100), aes(label = word, size = n)) +
+    geom_text_wordcloud() +
+    scale_size_area(max_size = word_max_size) +
+    theme_minimal()
+  
 })
 
 

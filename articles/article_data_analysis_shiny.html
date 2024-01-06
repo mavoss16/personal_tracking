@@ -3015,7 +3015,7 @@ vertical-align: -.125em;
 <span class="input-group-addon input-group-prepend input-group-append">
 <span class="input-group-text"> to </span>
 </span>
-<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-01-04" data-date-autoclose="true">
+<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-01-05" data-date-autoclose="true">
 </div>
 </div>
 </div>
@@ -3024,6 +3024,25 @@ vertical-align: -.125em;
 <div class="panel-fill panel-grid g-col-24 g-col-lg-17 pt-3 pt-lg-0">
 <div class="g-col-24">
 <div class="panel-fill">
+<div class="cell quarto-layout-panel">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 20.0%;justify-content: center;">
+<button id="current_week_input" type="button" class="btn btn-default action-button">Current Week</button>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 20.0%;justify-content: center;">
+<button id="previous_week_input" type="button" class="btn btn-default action-button">Previous Week</button>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 20.0%;justify-content: center;">
+<button id="current_month_input" type="button" class="btn btn-default action-button">Current Month</button>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 20.0%;justify-content: center;">
+<button id="current_year_input" type="button" class="btn btn-default action-button">Current Year</button>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 20.0%;justify-content: center;">
+<button id="full_input" type="button" class="btn btn-default action-button">All-Time</button>
+</div>
+</div>
+</div>
 <div class="cell quarto-layout-panel">
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div class="cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
@@ -3097,10 +3116,11 @@ library(lubridate)
 library(zoo)
 library(tidyr)
 library(shinydashboard)
-library(wordcloud)
+library(ggwordcloud)
 library(stringr)
 library(purrr)
-library(tm)
+library(tidytext)
+library(pluralize)
 
 # require(notionR)
 # library(notionR) # https://github.com/Eflores89/notionR
@@ -3120,6 +3140,21 @@ library(tm)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
+observeEvent(input$current_week_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "week"), end = Sys.Date())
+})
+observeEvent(input$previous_week_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date() - 7, unit = "week"), end = floor_date(Sys.Date(), unit = "week") - 1)
+})
+observeEvent(input$current_month_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "month"), end = Sys.Date())
+})
+observeEvent(input$current_year_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "year"), end = Sys.Date())
+})
+observeEvent(input$full_input, {
+  updateDateRangeInput(inputId = "date_range_input", start = ymd("2023/03/01"), end = Sys.Date())
+})
 
 data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/articles/article_data.rds", "rb"))
 
@@ -3192,12 +3227,22 @@ wday_summary <- reactive({
 
 # Wordcloud data
 wordcloud_data <- reactive({
-  article_data() |> 
-    pull(article_title) |>
-    str_remove_all(" - .+$|\\| .+|$") |>
-    map(tolower) |>
-    map(removeWords, stopwords("english")) |>
-    map(removePunctuation)
+  
+  article_data() |>
+    select(article_title) |>
+    mutate(
+      article_title = tolower(article_title) |> 
+        str_remove_all(" - .+$|\\| .+|$") |> 
+        str_replace_all("[^a-z]s ", " ") |>
+        str_replace_all(" [^a-z ]|[^a-z ] ", " ") |> 
+        str_replace_all("[^a-z ]", "") |>
+        singularize()
+    ) |>
+    unnest_tokens(word, article_title) |>
+    anti_join(stop_words |> mutate(word = str_remove_all(word, "[^a-zA-Z]"))) |>
+    count(word) |>
+    arrange(-n) |>
+    slice(1:100)
 })
 
 output$box_articles <- renderValueBox({
@@ -3294,7 +3339,17 @@ output$calendar_articles <- renderPlot({
 })
 
 output$wordcloud <- renderPlot({
-  wordcloud(wordcloud_data(), max.words = 200)
+  # wordcloud(wordcloud_data(), max.words = 200)
+  if(max(wordcloud_data()$n) / max(wordcloud_data()$n) <= 2){
+    word_max_size = 10
+  } else{
+    word_max_size = 25
+  }
+  ggplot(data = wordcloud_data() |> slice(1:100), aes(label = word, size = n)) +
+    geom_text_wordcloud() +
+    scale_size_area(max_size = word_max_size) +
+    theme_minimal()
+  
 })
 
 
@@ -3336,7 +3391,7 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
 <!--html_preserve-->
 
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77]}},"value":[{"type":"character","attributes":{},"value":["base","bslib","cachem","cli","colorspace","compiler","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","forcats","generics","ggplot2","glue","graphics","grDevices","grid","gtable","hms","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","lattice","lifecycle","lubridate","magrittr","memoise","methods","mime","munsell","NLP","parallel","pillar","pkgconfig","promises","purrr","R6","RColorBrewer","Rcpp","reactable","reactR","readr","rlang","rmarkdown","rstudioapi","sass","scales","shiny","shinydashboard","slam","stats","stringi","stringr","tibble","tidyr","tidyselect","timechange","tm","tools","tzdb","utf8","utils","vctrs","withr","wordcloud","xfun","xml2","xtable","yaml","zoo"]},{"type":"character","attributes":{},"value":["4.3.2","0.6.1","1.0.8","3.6.1","2.1-0","4.3.2","4.3.2","0.6.33","1.1.4","0.3.2","0.23","1.0.5","1.1.1","1.0.0","0.1.3","3.4.4","1.6.2","4.3.2","4.3.2","4.3.2","0.3.4","1.1.3","0.5.7","1.6.4","1.6.13","0.1.4","1.8.8","1.45","1.3.2","0.21-9","1.0.4","1.9.3","2.0.3","2.0.1","4.3.2","0.12","0.5.0","0.2-1","4.3.2","1.9.0","2.0.3","1.2.1","1.0.2","2.5.1","1.1-3","1.0.11","0.4.4","0.5.0","2.1.4","1.1.2","2.25","0.15.0","0.4.8","1.3.0","1.8.0","0.7.2","0.1-50","4.3.2","1.8.2","1.5.1","3.2.1","1.3.0","1.2.0","0.2.0","0.7-11","4.3.2","0.4.0","1.2.4","4.3.2","0.6.5","2.5.2","2.6","0.41","1.3.6","1.8-4","2.3.7","1.8-12"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82]}},"value":[{"type":"character","attributes":{},"value":["base","bslib","cachem","cli","colorspace","compiler","curl","datasets","digest","dplyr","ellipsis","evaluate","fansi","fastmap","forcats","generics","ggplot2","ggwordcloud","glue","graphics","grDevices","grid","gridtext","gtable","hms","htmltools","htmlwidgets","httpuv","janeaustenr","jquerylib","jsonlite","knitr","later","lattice","lifecycle","lubridate","magrittr","Matrix","memoise","methods","mime","munsell","pillar","pkgconfig","pluralize","png","promises","purrr","R6","Rcpp","reactable","reactR","readr","rlang","rmarkdown","rstudioapi","sass","scales","shiny","shinydashboard","SnowballC","stats","stringi","stringr","tibble","tidyr","tidyselect","tidytext","timechange","tokenizers","tools","tzdb","utf8","utils","V8","vctrs","withr","xfun","xml2","xtable","yaml","zoo"]},{"type":"character","attributes":{},"value":["4.3.2","0.6.1","1.0.8","3.6.1","2.1-0","4.3.2","5.1.0","4.3.2","0.6.33","1.1.4","0.3.2","0.23","1.0.5","1.1.1","1.0.0","0.1.3","3.4.4","0.6.1","1.6.2","4.3.2","4.3.2","4.3.2","0.1.5","0.3.4","1.1.3","0.5.7","1.6.4","1.6.13","1.0.0","0.1.4","1.8.8","1.45","1.3.2","0.21-9","1.0.4","1.9.3","2.0.3","1.6-1.1","2.0.1","4.3.2","0.12","0.5.0","1.9.0","2.0.3","0.2.1","0.1-8","1.2.1","1.0.2","2.5.1","1.0.11","0.4.4","0.5.0","2.1.4","1.1.2","2.25","0.15.0","0.4.8","1.3.0","1.8.0","0.7.2","0.7.1","4.3.2","1.8.2","1.5.1","3.2.1","1.3.0","1.2.0","0.4.1","0.2.0","0.3.0","4.3.2","0.4.0","1.2.4","4.3.2","4.4.1","0.6.5","2.5.2","0.41","1.3.6","1.8-4","2.3.7","1.8-12"]}]}]}
 </script>
 <!--/html_preserve-->
 
