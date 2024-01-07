@@ -3118,7 +3118,6 @@ library(tidyr)
 library(shinydashboard)
 library(ggwordcloud)
 library(stringr)
-library(purrr)
 library(tidytext)
 library(pluralize)
 
@@ -3235,10 +3234,10 @@ wordcloud_data <- reactive({
         str_remove_all(" - .+$|\\| .+|$") |> 
         str_replace_all("[^a-z]s ", " ") |>
         str_replace_all(" [^a-z ]|[^a-z ] ", " ") |> 
-        str_replace_all("[^a-z ]", "") |>
-        singularize()
+        str_replace_all("[^a-z ]", "")
     ) |>
     unnest_tokens(word, article_title) |>
+    filter(!is.na(word), !is.null(word)) |>
     anti_join(stop_words |> mutate(word = str_remove_all(word, "[^a-zA-Z]"))) |>
     count(word) |>
     arrange(-n) |>
