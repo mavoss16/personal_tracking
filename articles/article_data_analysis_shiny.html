@@ -3015,7 +3015,7 @@ vertical-align: -.125em;
 <span class="input-group-addon input-group-prepend input-group-append">
 <span class="input-group-text"> to </span>
 </span>
-<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-01-05" data-date-autoclose="true">
+<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-01-17" data-date-autoclose="true">
 </div>
 </div>
 </div>
@@ -3139,6 +3139,13 @@ library(pluralize)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
+observe({
+  updateDateRangeInput(
+    inputId = "date_range_input", label = "Select a Date Range:",
+    start = "2023-03-01", end = Sys.Date()
+  )
+})
+
 observeEvent(input$current_week_input, {
   updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "week"), end = Sys.Date())
 })

@@ -135,6 +135,13 @@ plotOutput("wordcloud")
 ```{r}
 #| context: server
 
+observe({
+  updateDateRangeInput(
+    inputId = "date_range_input", label = "Select a Date Range:",
+    start = "2023-03-01", end = Sys.Date()
+  )
+})
+
 observeEvent(input$current_week_input, {
   updateDateRangeInput(inputId = "date_range_input", start = floor_date(Sys.Date(), unit = "week"), end = Sys.Date())
 })
