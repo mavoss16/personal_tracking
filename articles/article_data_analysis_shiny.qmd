@@ -206,7 +206,8 @@ date_summary <- reactive({
     ) |>
     mutate(
       year_month = factor(as.yearmon(date_read)),
-      week = week(date_read)
+      week = epiweek(date_read),
+      week = ifelse(month_read == "Dec" & week == 1, yes = 53, no = week) # epiweek starts week 1 in December if necessary
     ) |>
     filter(year_month != "Feb 2023") |>
     group_by(year_month) |>

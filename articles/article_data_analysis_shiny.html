@@ -3015,7 +3015,7 @@ vertical-align: -.125em;
 <span class="input-group-addon input-group-prepend input-group-append">
 <span class="input-group-text"> to </span>
 </span>
-<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-01-17" data-date-autoclose="true">
+<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-02-17" data-date-autoclose="true">
 </div>
 </div>
 </div>
@@ -3210,7 +3210,8 @@ date_summary <- reactive({
     ) |>
     mutate(
       year_month = factor(as.yearmon(date_read)),
-      week = week(date_read)
+      week = epiweek(date_read),
+      week = ifelse(month_read == "Dec" & week == 1, yes = 53, no = week) # epiweek starts week 1 in December if necessary
     ) |>
     filter(year_month != "Feb 2023") |>
     group_by(year_month) |>
