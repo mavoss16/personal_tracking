@@ -3015,7 +3015,7 @@ vertical-align: -.125em;
 <span class="input-group-addon input-group-prepend input-group-append">
 <span class="input-group-text"> to </span>
 </span>
-<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-02-17" data-date-autoclose="true">
+<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-04-07" data-date-autoclose="true">
 </div>
 </div>
 </div>
@@ -3283,7 +3283,7 @@ date_summary <- reactive({
     mutate(
       year_month = factor(as.yearmon(date_listened)),
       week = epiweek(date_listened),
-      week = ifelse(month_listened == "Dec" & week == 1, yes = 53, no = week)
+      week = ifelse(month_listened == "Dec" & week == 1, yes = 53, no = week) # epiweek starts week 1 in December if necessary
     ) |>
     filter(year_month != "Feb 2023") |>
     group_by(year_month) |>
@@ -3320,6 +3320,7 @@ wordcloud_data <- reactive({
     select(episode_title) |>
     mutate(
       episode_title = tolower(episode_title) |> 
+        str_remove_all("williams & blum|iowa everywhere|two guys named chris|sunday story|on iowa politics|pod|podcast") |>
         str_remove_all(" - .+$|\\| .+|$") |> 
         str_replace_all("[^a-z]s ", " ") |>
         str_replace_all(" [^a-z ]|[^a-z ] ", " ") |> 

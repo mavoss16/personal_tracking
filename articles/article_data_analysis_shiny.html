@@ -3015,7 +3015,7 @@ vertical-align: -.125em;
 <span class="input-group-addon input-group-prepend input-group-append">
 <span class="input-group-text"> to </span>
 </span>
-<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-02-17" data-date-autoclose="true">
+<input class="form-control" type="text" aria-labelledby="date_range_input-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-initial-date="2024-04-07" data-date-autoclose="true">
 </div>
 </div>
 </div>
@@ -3239,6 +3239,7 @@ wordcloud_data <- reactive({
     select(article_title) |>
     mutate(
       article_title = tolower(article_title) |> 
+        str_remove_all("iowa capital dispatch|the gazette|the new york times|the washington post|politico") |>
         str_remove_all(" - .+$|\\| .+|$") |> 
         str_replace_all("[^a-z]s ", " ") |>
         str_replace_all(" [^a-z ]|[^a-z ] ", " ") |> 

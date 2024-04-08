@@ -258,6 +258,7 @@ wordcloud_data <- reactive({
     select(episode_title) |>
     mutate(
       episode_title = tolower(episode_title) |> 
+        str_remove_all("williams & blum|iowa everywhere|two guys named chris|sunday story|on iowa politics|pod|podcast") |>
         str_remove_all(" - .+$|\\| .+|$") |> 
         str_replace_all("[^a-z]s ", " ") |>
         str_replace_all(" [^a-z ]|[^a-z ] ", " ") |> 

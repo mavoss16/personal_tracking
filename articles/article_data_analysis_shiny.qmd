@@ -235,6 +235,7 @@ wordcloud_data <- reactive({
     select(article_title) |>
     mutate(
       article_title = tolower(article_title) |> 
+        str_remove_all("iowa capital dispatch|the gazette|the new york times|the washington post|politico") |>
         str_remove_all(" - .+$|\\| .+|$") |> 
         str_replace_all("[^a-z]s ", " ") |>
         str_replace_all(" [^a-z ]|[^a-z ] ", " ") |> 
