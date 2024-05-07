@@ -46,9 +46,9 @@ library(pluralize)
 
 
 # data <- read_rds("article_data.rds")
-# publisher_summary <- read_rds("article_publisher_summary.rds")
-# date_summary <- read_rds("article_date_summary.rds")
-# wday_summary <- read_rds("article_wday_summary.rds")
+# article_publisher_summary <- read_rds("article_article_publisher_summary.rds")
+# article_date_summary <- read_rds("article_article_date_summary.rds")
+# article_wday_summary <- read_rds("article_article_wday_summary.rds")
 
 
 ```
@@ -101,9 +101,9 @@ valueBoxOutput("box_days")
 
 ## Plots
 ```{r}
-plotOutput("bar_publishers_articles")
-plotOutput("bar_days_articles")
-plotOutput("calendar_articles", height = "750px")
+plotOutput("article_publishers_bar")
+plotOutput("article_wdays_bar")
+plotOutput("article_calendar", height = "750px")
 # reactableOutput("dates_test")
 ```
 
@@ -115,17 +115,17 @@ plotOutput("calendar_articles", height = "750px")
 
 ## Publisher Table
 ```{r}
-reactableOutput("table_publishers")
+reactableOutput("article_publisher_table")
 ```
 
 ## Article Table
 ```{r}
-reactableOutput("table_articles")
+reactableOutput("article_table")
 ```
 
 ## Article Title Wordcloud
 ```{r, fig.height = 5}
-plotOutput("wordcloud")
+plotOutput("article_wordcloud")
 ```
 
 
@@ -172,7 +172,7 @@ article_data <- reactive({
 # })
 
 # Group by publisher
-publisher_summary <- reactive({
+article_publisher_summary <- reactive({
   article_data() |>
     group_by(publisher) |>
     summarize(
@@ -182,7 +182,7 @@ publisher_summary <- reactive({
 
 
 # Group by dates
-date_summary <- reactive({
+article_date_summary <- reactive({
   
   # Create base date df
   dates <- data.frame(date_read = min(input$date_range_input, na.rm = T):max(input$date_range_input, na.rm = T) |> as.Date()) |>
@@ -193,14 +193,14 @@ date_summary <- reactive({
     )
   
   # Group by date - initial date calculations
-  date_summary <- article_data() |>
+  article_date_summary <- article_data() |>
     group_by(date_read, year_read, month_read, wday_read) |>
     summarize(
       total_articles = n()
     )
   
   # Add in days without listening to any podcasts + calculations for calendar heatmap
-  date_summary <- left_join(dates, date_summary) |>
+  article_date_summary <- left_join(dates, article_date_summary) |>
     mutate(
       total_articles = replace_na(total_articles, 0)
     ) |>
@@ -214,13 +214,13 @@ date_summary <- reactive({
     mutate(month_week = 1 + week - min(week)) |>
     ungroup()
 
-  date_summary
+  article_date_summary
 })
 
 
 # Group by weekdays
-wday_summary <- reactive({
-  date_summary() |>
+article_wday_summary <- reactive({
+  article_date_summary() |>
     group_by(wday_read) |>
     summarize( 
       avg_articles = mean(total_articles, na.rm = TRUE) |> round(2)
@@ -229,7 +229,7 @@ wday_summary <- reactive({
 
 
 # Wordcloud data
-wordcloud_data <- reactive({
+article_wordcloud_data <- reactive({
   
   article_data() |>
     select(article_title) |>
@@ -258,15 +258,15 @@ output$box_articles <- renderValueBox({
 
 output$box_days <- renderValueBox({
   valueBox(
-    paste0(sum(date_summary()$total_articles >= 1, na.rm = T), "/", nrow(date_summary())),
+    paste0(sum(article_date_summary()$total_articles >= 1, na.rm = T), "/", nrow(article_date_summary())),
     "Number of Days"
   )
 })
 
 
-output$table_publishers <- renderReactable({
+output$article_publisher_table <- renderReactable({
   reactable(
-    publisher_summary() |>
+    article_publisher_summary() |>
       select(publisher, total_articles),
     columns = list(
       publisher = colDef(name = "Publisher"),
@@ -277,7 +277,7 @@ output$table_publishers <- renderReactable({
   )
 })
 
-output$table_articles <- renderReactable({
+output$article_table <- renderReactable({
   reactable(
     article_data() |>
       select(publisher, article_title, date_read, url),
@@ -296,10 +296,10 @@ output$table_articles <- renderReactable({
 })
 
 
-output$bar_publishers_articles <- renderPlot({
-  max_value <- max(publisher_summary()$total_articles) * 1.2
+output$article_publishers_bar <- renderPlot({
+  max_value <- max(article_publisher_summary()$total_articles) * 1.2
   ggplot(
-    publisher_summary() |> arrange(-total_articles) |> slice(1:10), 
+    article_publisher_summary() |> arrange(-total_articles) |> slice(1:10), 
     aes(x = fct_reorder(publisher, total_articles), y = total_articles, label = total_articles)
     ) +
     geom_col() +
@@ -314,9 +314,9 @@ output$bar_publishers_articles <- renderPlot({
 })
 
 
-output$bar_days_articles <- renderPlot({
+output$article_wdays_bar <- renderPlot({
   ggplot(
-    wday_summary(),
+    article_wday_summary(),
     aes(x = fct_rev(wday_read), y = avg_articles, label = avg_articles |> round(1))
   ) +
     geom_col() +
@@ -326,9 +326,9 @@ output$bar_days_articles <- renderPlot({
   theme_minimal()
 })
 
-output$calendar_articles <- renderPlot({
+output$article_calendar <- renderPlot({
   
-  ggplot(date_summary(), aes(x = wday_read, y = -month_week, label = total_articles, fill = total_articles)) +
+  ggplot(article_date_summary(), aes(x = wday_read, y = -month_week, label = total_articles, fill = total_articles)) +
     geom_tile(color = "white") +
     geom_text() +
     facet_grid(month_read~year_read) +
@@ -342,14 +342,14 @@ output$calendar_articles <- renderPlot({
     )
 })
 
-output$wordcloud <- renderPlot({
-  # wordcloud(wordcloud_data(), max.words = 200)
-  if(max(wordcloud_data()$n) / max(wordcloud_data()$n) <= 2){
+output$article_wordcloud <- renderPlot({
+  # wordcloud(article_wordcloud_data(), max.words = 200)
+  if(max(article_wordcloud_data()$n) / max(article_wordcloud_data()$n) <= 2){
     word_max_size = 10
   } else{
     word_max_size = 25
   }
-  ggplot(data = wordcloud_data() |> slice(1:100), aes(label = word, size = n)) +
+  ggplot(data = article_wordcloud_data() |> slice(1:100), aes(label = word, size = n)) +
     geom_text_wordcloud() +
     scale_size_area(max_size = word_max_size) +
     theme_minimal()
