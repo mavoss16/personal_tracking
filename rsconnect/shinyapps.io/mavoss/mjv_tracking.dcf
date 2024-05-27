@@ -1,0 +1,13 @@
+name: mjv_tracking
+title: mjv_tracking
+username: mavoss
+account: mavoss
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11949171
+bundleId: 8649721
+url: https://mavoss.shinyapps.io/mjv_tracking/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: habits/habit_data.rds|habits/habit_data_shiny.R|habits/habit_text_data.rds|health/health_data_clean.R|health/health_data_explore.R|articles|podcasts
