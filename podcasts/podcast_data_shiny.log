@@ -5508,3 +5508,53 @@ The following objects are masked from 'package:base':
 
     as.Date, as.Date.numeric
 
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: 'lubridate'
+
+The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union
+
+
+Attaching package: 'zoo'
+
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+
+Error in `select()`:
+! Can't select columns that don't exist.
+✖ Column `properties.Date Listened.created_time` doesn't exist.
+Backtrace:
+     ▆
+  1. ├─dplyr::select(...)
+  2. ├─dplyr:::select.data.frame(...)
+  3. │ └─tidyselect::eval_select(expr(c(...)), data = .data, error_call = error_call)
+  4. │   └─tidyselect:::eval_select_impl(...)
+  5. │     ├─tidyselect:::with_subscript_errors(...)
+  6. │     │ └─base::withCallingHandlers(...)
+  7. │     └─tidyselect:::vars_select_eval(...)
+  8. │       └─tidyselect:::walk_data_tree(expr, data_mask, context_mask)
+  9. │         └─tidyselect:::eval_c(expr, data_mask, context_mask)
+ 10. │           └─tidyselect:::reduce_sels(node, data_mask, context_mask, init = init)
+ 11. │             └─tidyselect:::walk_data_tree(new, data_mask, context_mask)
+ 12. │               └─tidyselect:::as_indices_sel_impl(...)
+ 13. │                 └─tidyselect:::as_indices_impl(...)
+ 14. │                   └─tidyselect:::chr_as_locations(x, vars, call = call, arg = arg)
+ 15. │                     └─vctrs::vec_as_location(...)
+ 16. └─vctrs (local) `<fn>`()
+ 17.   └─vctrs:::stop_subscript_oob(...)
+ 18.     └─vctrs:::stop_subscript(...)
+ 19.       └─rlang::abort(...)
+Execution halted
