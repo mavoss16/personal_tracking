@@ -6008,3 +6008,34 @@ The following objects are masked from 'package:base':
 
     as.Date, as.Date.numeric
 
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: 'lubridate'
+
+The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union
+
+
+Attaching package: 'zoo'
+
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+
+Error in while (new_cursor) { : argument is of length zero
+Calls: getNotionDatabase
+In addition: Warning message:
+In getItemsAndFlattenIntoDataFrame(r$results) :
+  There are no results from the query. Check your filters. A data.frame will still be exported, with col_name = results and row1 = none
+Execution halted
