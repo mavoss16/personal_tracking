@@ -7942,3 +7942,106 @@ Warning message:
 package 'tidyr' was built under R version 4.3.3 
 Warning message:
 package 'readr' was built under R version 4.3.3 
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: 'lubridate'
+
+The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union
+
+Warning message:
+package 'lubridate' was built under R version 4.3.3 
+
+Attaching package: 'zoo'
+
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+
+Warning message:
+package 'zoo' was built under R version 4.3.3 
+Warning message:
+package 'tidyr' was built under R version 4.3.3 
+Error in curl::curl_fetch_memory(url, handle = handle) : 
+  Timeout was reached [api.notion.com]: Operation too slow. Less than 1 bytes/sec transferred the last 600 seconds
+Calls: getNotionDatabase ... request_fetch.write_memory -> <Anonymous> -> raise_libcurl_error
+Execution halted
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: 'lubridate'
+
+The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union
+
+Warning message:
+package 'lubridate' was built under R version 4.3.3 
+
+Attaching package: 'zoo'
+
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+
+Warning message:
+package 'zoo' was built under R version 4.3.3 
+Warning message:
+package 'tidyr' was built under R version 4.3.3 
+Error in curl::curl_fetch_memory(url, handle = handle) : 
+  Timeout was reached [api.notion.com]: Operation too slow. Less than 1 bytes/sec transferred the last 600 seconds
+Calls: getNotionDatabase ... request_fetch.write_memory -> <Anonymous> -> raise_libcurl_error
+Execution halted
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: 'lubridate'
+
+The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union
+
+Warning message:
+package 'lubridate' was built under R version 4.3.3 
+
+Attaching package: 'zoo'
+
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+
+Warning message:
+package 'zoo' was built under R version 4.3.3 
+Warning message:
+package 'tidyr' was built under R version 4.3.3 
+Warning message:
+package 'readr' was built under R version 4.3.3 
