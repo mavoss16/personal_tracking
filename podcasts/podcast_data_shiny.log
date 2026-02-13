@@ -14282,3 +14282,9 @@ Warning message:
 package 'tidyr' was built under R version 4.3.3 
 Warning message:
 package 'readr' was built under R version 4.3.3 
+Error in grepl("(canada|united.states)", Sys.getlocale("LC_MONETARY"),  : 
+  invalid regular expression '(canada|united.states)', reason 'Out of memory'
+In addition: Warning message:
+In grepl("(canada|united.states)", Sys.getlocale("LC_MONETARY"),  :
+  TRE pattern compilation error 'Out of memory'
+Execution halted
