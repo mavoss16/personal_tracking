@@ -14288,3 +14288,10 @@ In addition: Warning message:
 In grepl("(canada|united.states)", Sys.getlocale("LC_MONETARY"),  :
   TRE pattern compilation error 'Out of memory'
 Execution halted
+Error: package or namespace load failed for 'dplyr' in inDL(x, as.logical(local), as.logical(now), ...):
+ unable to load shared object 'C:/Program Files/R/R-4.3.2/library/vctrs/libs/x64/vctrs.dll':
+  LoadLibrary failure:  The paging file is too small for this operation to complete.
+In addition: Warning message:
+In .updateMethodsInTable(fdef, where, attach) :
+  restarting interrupted promise evaluation
+Execution halted
