@@ -1954,3 +1954,9 @@ The following objects are masked from 'package:base':
 
 Warning message:
 package 'zoo' was built under R version 4.3.3 
+Error in readRDS(mapfile) : error reading from connection
+In addition: Warning message:
+package 'DBI' was built under R version 4.3.3 
+Error: package or namespace load failed for 'DBI':
+ unable to load R code in package 'DBI'
+Execution halted
