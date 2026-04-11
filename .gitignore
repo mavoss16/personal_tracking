@@ -2,7 +2,4 @@
 .Rhistory
 .RData
 .Ruserdata
-
-*.R
-podcasts/*.R
-articles/*.R
+.Renviron
