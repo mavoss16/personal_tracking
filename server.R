@@ -27,7 +27,7 @@ source("ui_tabs.R")
 daily_health_summary <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/health/daily_health_summary.rds", "rb"))
 orig_podcast_data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/podcasts/podcast_data.rds"))
 orig_article_data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/articles/article_data.rds", "rb"))
-orig_habit_data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/habits/habit_data.rds", "rb"))
+# orig_habit_data <- readRDS(url("https://github.com/mavoss16/personal_tracking/raw/master/habits/habit_data.rds", "rb"))
 
 user_base <- tibble::tibble(
   user = c("mv"),
