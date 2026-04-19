@@ -12,6 +12,7 @@ jobs:
 
     env:
       NOTION_TOKEN_SHINY: ${{ secrets.NOTION_TOKEN_SHINY }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout repo
