@@ -27,16 +27,23 @@ jobs:
           r-version: '4.4'
           use-public-rspm: true
 
-      # The cache key must include the runner image (ImageOS, e.g. ubuntu24 /
-      # ubuntu26) and the R version. Compiled packages such as stringi link
-      # against the image's system libraries (libicu), so a library built on one
-      # Ubuntu release cannot load on the next one.
+      # Read the distro release (e.g. ubuntu-26.04) for the cache key. ImageOS is
+      # set in the runner's shell environment but is not visible to the `env`
+      # expression context, so it cannot be used in a key directly.
+      - name: Identify runner image
+        id: image
+        run: echo "id=$(. /etc/os-release && echo "${ID}-${VERSION_ID}")" >> "$GITHUB_OUTPUT"
+
+      # The cache key must include the distro release and the R version. Compiled
+      # packages such as stringi link against the image's system libraries
+      # (libicu), so a library built on one Ubuntu release cannot load on the next
+      # one — which is exactly how ubuntu-latest moving to 26.04 broke this job.
       - name: Cache R packages
         uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: r-${{ env.ImageOS }}-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('**/DESCRIPTION') }}-v1
-          restore-keys: r-${{ env.ImageOS }}-${{ steps.setup-r.outputs.installed-r-version }}-
+          key: r-${{ steps.image.outputs.id }}-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('**/DESCRIPTION') }}-v1
+          restore-keys: r-${{ steps.image.outputs.id }}-${{ steps.setup-r.outputs.installed-r-version }}-
 
       - name: Install CRAN packages
         run: |
